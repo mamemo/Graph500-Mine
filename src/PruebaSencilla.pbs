@@ -1,0 +1,8 @@
+#PBS -N PruebaGraph500
+#PBS -q phi-n6h96
+#PBS -l nodes=6:ppn=6
+#PBS -l walltime=00:30:00
+
+cd $PBS_O_WORKDIR
+
+./graph500_reference_bfs 20 16

@@ -1,0 +1,111 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+main -> main.c
+aml_init(&argc,&argv) -> Inicia aml, Inicia MPI
+setup_globals() -> Setea MPI
+Parsea los argumentos -> Son dos la escala y los edge
+uint64_t seed1 = 2, seed2 = 3
+Abre el archivo donde guarda los datos
+Crea una variable de tipo tuple_graph
+Setea los valores de la estructura
+if (tg.data_in_file) -> Si los datos del grafo estan en un archivo
+#BFS
+nt64_t* bfs_roots -> 64 roots para aplicar BFS
+Inicia un timer de MPI -> Empieza la preparacion para la creacion del grafo
+Comentario de la creacion: /* As the graph is being generated, also keep a bitmap of vertices with incident edges.  We keep a grid of processes, each row of which has a separate copy of the bitmap (distributed among the processes in the row), and then do an allreduce at the end.  This scheme is used to avoid non-local communication and reading the file separately just to find BFS roots. */
+/* Every rank in a given row creates the same vertices (for updating the bitmap); only one writes them to the file (or final memory buffer). */
+Finaliza el timer de la preparacion de la creacion
+#Hace la estructura del grafo de datos del usuario
+Inicia un timer de MPI -> Empieza el kernel 1: Construccion del grafo
+Lo efectua la funcion make_graph_data_structure, esta funcion se encuentra en bfs_reference.c
+Esta funcion a su vez, llama a convert_graph_to_oned_csr en csr_reference.c
+Termina el timer
+#Generacion de las roots
+Crea  numeros aleatorios y valida que la root no este aislada con la funcion isisolated(root) en csr_reference.c
+#Ejecucion del BFS
+double* edge_counts -> numeros de edges visitados en cada BFS
+Crea las variables a llenar en el BFS
+Llama a get_nlocalverts_for_pred() en bfs_reference.c para obtener los vertices locales
+Llama a clean_pred en bfs_reference.c para to initialize predecessor array to whatever value user needs
+Llama a run_bfs en bfs_reference.c para ejecutar el kernel 2: Breadth-First Search
+Llama a validate_result en validate.c para
+#Ciclo - Para cada root de las 64 escogidas efectua:
+clean_pred
+Empieza timer
+run_bfs
+Termina timer
+get_edge_count_for_teps -> we need edge count to calculate teps. Validation will check if this count is correct
+Calcula los TEPS asi -> edge_visit_count / bfs_times[bfs_root_idx]
+Empieza timer
+validate_result
+Termina timer
+#SSSP
+Llama a clean_shortest en sssp_reference.c para to prefill dist array with whatever value
+Llama a clean_pred
+Llama a run_sssp en sssp_reference.c para ejecutar el kernel 3: single source shortest path
+#Ciclo - Para cada root de las 64 escogidas efectua:
+clean_pred
+clean_shortest
+Empieza timer
+run_sssp
+Termina timer
+et_edge_count_for_teps -> we need edge count to calculate teps. Validation will check if this count is correct
+Calcula los TEPS asi -> edge_visit_count / sssp_times[bfs_root_idx]
+Empieza timer
+validate_result
+Termina timer
+#Terminando
+Libera memoria de variables
+Cierra variables
+Imprime resultados
+Libera memoria
+cleanup_globals() -> utils.c
+aml_finalize() -> Tiene el MPI_Finalize

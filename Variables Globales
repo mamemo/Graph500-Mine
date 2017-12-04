@@ -1,0 +1,49 @@
+
+
+
+
+
+extern int rank, size -> common.h
+extern int lgsize
+extern MPI_Datatype packed_edge_mpi_type
+static const int ulong_bits
+struct tuple_graph
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+enum {s_minimum, s_firstquartile, s_median, s_thirdquartile, s_maximum, s_mean, s_std, s_LAST} -> main.c

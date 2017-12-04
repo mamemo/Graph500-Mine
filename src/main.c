@@ -68,7 +68,7 @@ void get_statistics(const double x[], int n, volatile double r[s_LAST]) {
 
 int main(int argc, char** argv) {
 	aml_init(&argc,&argv); //includes MPI_Init inside
-	setup_globals();
+	setup_globals(); // En utils.c
 
 	/* Parse arguments. */
 	int SCALE = 16;
@@ -86,13 +86,13 @@ int main(int argc, char** argv) {
 	const char* filename = getenv("TMPFILE");
 #ifdef SSSP
 	int wmode;
-	char *wfilename=NULL;  
+	char *wfilename=NULL;
 	if(filename!=NULL) {
 		wfilename=malloc(strlen(filename)+8);
-		wfilename[0]='\0';strcat(wfilename,filename);strcat(wfilename,".weights");
+		wfilename[0]='\0'; strcat(wfilename,filename); strcat(wfilename,".weights");
 	}
 #endif
-	const int reuse_file = getenv("REUSEFILE")? 1 : 0;
+	const int reuse_file = getenv("REUSEFILE") ? 1 : 0;
 	/* If filename is NULL, store data in memory */
 
 	tuple_graph tg;
@@ -110,10 +110,10 @@ int main(int argc, char** argv) {
 		} else {
 			MPI_File_set_errhandler(MPI_FILE_NULL, MPI_ERRORS_RETURN);
 			if (MPI_File_open(MPI_COMM_WORLD, (char*)filename, mode,
-						MPI_INFO_NULL, &tg.edgefile)) {
+			                  MPI_INFO_NULL, &tg.edgefile)) {
 				if (0 == rank && getenv("VERBOSE"))
 					fprintf (stderr, "%d: failed to open %s, creating\n",
-							rank, filename);
+					         rank, filename);
 				mode |= MPI_MODE_RDWR | MPI_MODE_CREATE;
 #ifdef SSSP
 				wmode=mode;
@@ -131,10 +131,10 @@ int main(int argc, char** argv) {
 					}
 					else { //both files were open succedfully
 #endif
-						is_opened = 1;
-						tg.write_file = 0;
+					is_opened = 1;
+					tg.write_file = 0;
 #ifdef SSSP
-					}
+				}
 #endif
 				} else /* Size doesn't match, assume different parameters. */
 					MPI_File_close (&tg.edgefile);
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
 		if (!is_opened) {
 			MPI_File_open(MPI_COMM_WORLD, (char*)wfilename, wmode, MPI_INFO_NULL, &tg.weightfile);
 			MPI_File_set_size(tg.weightfile, tg.nglobaledges * sizeof(float));
-		}    
+		}
 		MPI_File_set_view(tg.weightfile, 0, MPI_FLOAT, MPI_FLOAT, "native", MPI_INFO_NULL);
 		MPI_File_set_atomicity(tg.weightfile, 0);
 #endif
@@ -204,7 +204,7 @@ int main(int argc, char** argv) {
 			MPI_Comm_split(cart_comm, my_col, my_row, &this_col);
 			MPI_Comm_free(&cart_comm);
 			/* Every rank in a given row creates the same vertices (for updating the
-			 * bitmap); only one writes them to the file (or final memory buffer). */
+			* bitmap); only one writes them to the file (or final memory buffer). */
 			packed_edge* buf = (packed_edge*)xmalloc(FILE_CHUNKSIZE * sizeof(packed_edge));
 #ifdef SSSP
 			float* wbuf = (float*)xmalloc(FILE_CHUNKSIZE*sizeof(float));
@@ -217,12 +217,12 @@ int main(int argc, char** argv) {
 			} else {
 				int my_pos = my_row + my_col * nrows;
 				int last_pos = (tg.nglobaledges % ((int64_t)FILE_CHUNKSIZE * nrows * ranks_per_row) != 0) ?
-					(tg.nglobaledges / FILE_CHUNKSIZE) % (nrows * ranks_per_row) :
-					-1;
+				               (tg.nglobaledges / FILE_CHUNKSIZE) % (nrows * ranks_per_row) :
+				               -1;
 				int64_t edges_left = tg.nglobaledges % FILE_CHUNKSIZE;
 				int64_t nedges = FILE_CHUNKSIZE * (tg.nglobaledges / ((int64_t)FILE_CHUNKSIZE * nrows * ranks_per_row)) +
-					FILE_CHUNKSIZE * (my_pos < (tg.nglobaledges / FILE_CHUNKSIZE) % (nrows * ranks_per_row)) +
-					(my_pos == last_pos ? edges_left : 0);
+				                 FILE_CHUNKSIZE * (my_pos < (tg.nglobaledges / FILE_CHUNKSIZE) % (nrows * ranks_per_row)) +
+				                 (my_pos == last_pos ? edges_left : 0);
 				/* fprintf(stderr, "%d: nedges = %" PRId64 " of %" PRId64 "\n", rank, (int64_t)nedges, (int64_t)tg.nglobaledges); */
 				tg.edgememory_size = nedges;
 				tg.edgememory = (packed_edge*)xmalloc(nedges * sizeof(packed_edge));
@@ -236,12 +236,12 @@ int main(int argc, char** argv) {
 				MPI_Offset start_edge_index = int64_min(FILE_CHUNKSIZE * (block_idx * nrows + my_row), tg.nglobaledges);
 				MPI_Offset edge_count = int64_min(tg.nglobaledges - start_edge_index, FILE_CHUNKSIZE);
 				packed_edge* actual_buf = (!tg.data_in_file && block_idx % ranks_per_row == my_col) ?
-					tg.edgememory + FILE_CHUNKSIZE * (block_idx / ranks_per_row) :
-					buf;
+				                          tg.edgememory + FILE_CHUNKSIZE * (block_idx / ranks_per_row) :
+				                          buf;
 #ifdef SSSP
 				float* actual_wbuf = (!tg.data_in_file && block_idx % ranks_per_row == my_col) ?
-					tg.weightmemory + FILE_CHUNKSIZE * (block_idx / ranks_per_row) :
-					wbuf;
+				                     tg.weightmemory + FILE_CHUNKSIZE * (block_idx / ranks_per_row) :
+				                     wbuf;
 #endif
 				/* fprintf(stderr, "%d: My range is [%" PRId64 ", %" PRId64 ") %swriting into index %" PRId64 "\n", rank, (int64_t)start_edge_index, (int64_t)(start_edge_index + edge_count), (my_col == (block_idx % ranks_per_row)) ? "" : "not ", (int64_t)(FILE_CHUNKSIZE * (block_idx / ranks_per_row))); */
 				if (!tg.data_in_file && block_idx % ranks_per_row == my_col) {
@@ -250,9 +250,9 @@ int main(int argc, char** argv) {
 				if (tg.write_file) {
 					generate_kronecker_range(seed, SCALE, start_edge_index, start_edge_index + edge_count, actual_buf
 #ifdef SSSP
-							,actual_wbuf
+					                         ,actual_wbuf
 #endif
-							);
+					                         );
 					if (tg.data_in_file && my_col == (block_idx % ranks_per_row)) { /* Try to spread writes among ranks */
 						MPI_File_write_at(tg.edgefile, start_edge_index, actual_buf, edge_count, packed_edge_mpi_type, MPI_STATUS_IGNORE);
 #ifdef SSSP
@@ -451,7 +451,7 @@ int main(int argc, char** argv) {
 		MPI_File_close(&tg.edgefile);
 #ifdef SSSP
 		MPI_File_close(&tg.weightfile);
-#endif    
+#endif
 	} else {
 		free(tg.edgememory); tg.edgememory = NULL;
 #ifdef SSSP

@@ -5,4 +5,4 @@
 
 cd $PBS_O_WORKDIR
 
-./graph500_custom_bfs_sssp 22 16
+./graph500_reference_bfs_sssp 22 16

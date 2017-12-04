@@ -1,0 +1,51 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Este bloque son de declaraciones de funciones
+setup_globals -> common.h
+cleanup_globals
+lg_int64_t
+xMPI_Alloc_mem
+xmalloc
+xcalloc
+validate_result
+make_graph_data_structure
+free_graph_data_structure
+run_bfs
+get_edge_count_for_teps
+clean_pred
+get_nlocalverts_for_pred
+run_sssp
+clean_shortest
+#Definiciones de funciones
+static inline size_t size_min(size_t a, size_t b)
+static inline ptrdiff_t ptrdiff_min(ptrdiff_t a, ptrdiff_t b)
+static inline int64_t int64_min(int64_t a, int64_t b)
+
+
+
+#Definiciones
+static int compare_doubles(const void* a, const void* b) -> main.c -> compara dos numeros. -1 el primero es menor, 0 son iguales, 1 el primero es mayor
+
+void get statistics(const double x[], int n, volatile double r[s_LAST]) -> En un arreglo deja las estadisticas de los periodos de ejecucion segun el enum
+main

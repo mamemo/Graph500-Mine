@@ -51,13 +51,14 @@
 main -> main.c
 aml_init(&argc,&argv) -> Inicia aml, Inicia MPI
 setup_globals() -> Setea MPI
-Parsea los argumentos -> Son dos la escala y los edge
+Parsea los argumentos -> Son dos: la escala y los edge
 uint64_t seed1 = 2, seed2 = 3
 Abre el archivo donde guarda los datos
 Crea una variable de tipo tuple_graph
 Setea los valores de la estructura
 if (tg.data_in_file) -> Si los datos del grafo estan en un archivo
-#BFS
+
+#GRAFO Kronecker Para entender Kronecker ver la presentacion Kronecker Graphs.pdf ubicada en esta carpeta
 nt64_t* bfs_roots -> 64 roots para aplicar BFS
 Inicia un timer de MPI -> Empieza la preparacion para la creacion del grafo
 Comentario de la creacion: /* As the graph is being generated, also keep a bitmap of vertices with incident edges.  We keep a grid of processes, each row of which has a separate copy of the bitmap (distributed among the processes in the row), and then do an allreduce at the end.  This scheme is used to avoid non-local communication and reading the file separately just to find BFS roots. */
@@ -70,7 +71,8 @@ Esta funcion a su vez, llama a convert_graph_to_oned_csr en csr_reference.c
 Termina el timer
 #Generacion de las roots
 Crea  numeros aleatorios y valida que la root no este aislada con la funcion isisolated(root) en csr_reference.c
-#Ejecucion del BFS
+
+#BFS Para entender BFS ver http://www.geeksforgeeks.org/breadth-first-traversal-for-a-graph/
 double* edge_counts -> numeros de edges visitados en cada BFS
 Crea las variables a llenar en el BFS
 Llama a get_nlocalverts_for_pred() en bfs_reference.c para obtener los vertices locales
@@ -87,7 +89,8 @@ Calcula los TEPS asi -> edge_visit_count / bfs_times[bfs_root_idx]
 Empieza timer
 validate_result
 Termina timer
-#SSSP
+
+#SSSP Para entender SSSP ver https://visualgo.net/en/sssp?slide=1
 Llama a clean_shortest en sssp_reference.c para to prefill dist array with whatever value
 Llama a clean_pred
 Llama a run_sssp en sssp_reference.c para ejecutar el kernel 3: single source shortest path
@@ -102,6 +105,7 @@ Calcula los TEPS asi -> edge_visit_count / sssp_times[bfs_root_idx]
 Empieza timer
 validate_result
 Termina timer
+
 #Terminando
 Libera memoria de variables
 Cierra variables
